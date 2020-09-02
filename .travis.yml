@@ -1,0 +1,22 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t akryvda/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true akryvda/react-test npm test
+
+after_success:
+  - docker build -t akryvda/multi-client ./client
+  - docker build -t akryvda/multi-nginx ./nginx
+  - docker build -t akryvda/multi-server ./server
+  - docker build -t akryvda/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push akryvda/multi-client
+  - docker push akryvda/multi-nginx
+  - docker push akryvda/multi-server
+  - docker push akryvda/multi-worker
+
